@@ -6,10 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  ACR_NAME:       ${{ vars.ACR_NAME       || 'airesearchregistry' }}
-  APP_NAME:       ${{ vars.APP_NAME       || 'ai-research-agent' }}
+  ACR_NAME: ${{ vars.ACR_NAME || 'airesearchrb2026' }}
+  APP_NAME: ${{ vars.APP_NAME || 'ai-research-agent-rb2026' }}
   RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP || 'rg-research-agent' }}
-  LOCATION:       ${{ vars.LOCATION       || 'eastus' }}
 
 jobs:
   lint:
@@ -23,23 +22,23 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: Install linting tools
+      - name: Install ruff
         run: pip install ruff
 
       - name: Ruff lint
         run: ruff check . --select=E,W,F --ignore=E501
 
-      - name: Python syntax check
+      - name: Syntax check
         run: |
           python -m py_compile app.py
           python -m py_compile config/settings.py
           python -m py_compile agent/research_agent.py
           python -m py_compile utils/scraper.py
           python -m py_compile utils/search.py
-          echo "All files pass syntax check ✔"
+          echo "All files OK"
 
   build:
-    name: Build & Push
+    name: Build and Push
     needs: lint
     runs-on: ubuntu-latest
     outputs:
@@ -62,11 +61,12 @@ jobs:
       - name: Compute image tag
         id: image
         run: |
-          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-8)
-          IMAGE_NAME="${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}"
-          URI="${IMAGE_NAME}:${SHORT_SHA}"
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+          ACR="${{ env.ACR_NAME }}"
+          APP="${{ env.APP_NAME }}"
+          URI="${ACR}.azurecr.io/${APP}:${SHORT_SHA}"
           echo "uri=${URI}" >> $GITHUB_OUTPUT
-          echo "Image URI: ${URI}"
+          echo "Image URI is ${URI}"
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -78,13 +78,12 @@ jobs:
             ${{ steps.image.outputs.uri }}
             ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:latest
           cache-from: type=registry,ref=${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:buildcache
-          cache-to:   type=registry,ref=${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:buildcache,mode=max
+          cache-to: type=registry,ref=${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:buildcache,mode=max
 
   deploy:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Azure Login
@@ -95,18 +94,18 @@ jobs:
       - name: Update App Service image
         run: |
           IMAGE="${{ needs.build.outputs.image_uri }}"
+          echo "Deploying: $IMAGE"
           az webapp config container set \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME }} \
             --docker-custom-image-name "$IMAGE" \
             --output none
-
           az webapp restart \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME }} \
             --output none
 
-      - name: Sync secrets
+      - name: Sync GROQ_API_KEY
         run: |
           az webapp config appsettings set \
             --resource-group ${{ env.RESOURCE_GROUP }} \
@@ -114,21 +113,22 @@ jobs:
             --settings GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
             --output none
 
-      - name: Verify app is responding
+      - name: Verify app is live
         run: |
           APP_URL=$(az webapp show \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME }} \
             --query defaultHostName -o tsv)
-
+          echo "Checking https://${APP_URL}/_stcore/health"
           for i in {1..12}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_URL}/_stcore/health" || echo "000")
-            if [[ "$STATUS" == "200" ]]; then
-              echo "✔ App is healthy"
-              echo "🚀 Live at: https://${APP_URL}"
+            if [ "$STATUS" = "200" ]; then
+              echo "App is healthy!"
+              echo "Live at: https://${APP_URL}"
               exit 0
             fi
-            echo "Attempt $i/12 — status $STATUS, retrying in 15s..."
+            echo "Attempt $i/12 - status $STATUS - retrying in 15s..."
             sleep 15
           done
+          echo "App did not respond in time - check logs"
           exit 1
