@@ -15,7 +15,7 @@ ROOT = Path(__file__).parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from config.settings import settings  # noqa: E402
+from config.settings import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -442,6 +442,8 @@ if research_clicked and topic.strip():
 
         # ── Parse answer into summary + insights ──
         answer = state.get("answer", "No answer generated.")
+        # Strip any HTML tags the LLM may have generated
+        answer = re.sub(r"<[^>]+>", "", answer)
         summary_lines = []
         insight_lines = []
         in_insights = False
@@ -539,4 +541,3 @@ elif research_clicked and not topic.strip():
 
 else:
     st.markdown(render_workflow(0), unsafe_allow_html=True)
-
