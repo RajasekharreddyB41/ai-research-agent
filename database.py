@@ -7,7 +7,6 @@ import sqlite3
 import json
 import os
 from datetime import datetime
-from pathlib import Path
 
 DB_PATH = os.getenv("DB_PATH", "research_history.db")
 
@@ -41,7 +40,7 @@ def save_research(topic: str, answer: str, sources: list, queries: list) -> int:
     """Save a research result to the database."""
     conn = get_connection()
     cursor = conn.execute(
-        """INSERT INTO research_history 
+        """INSERT INTO research_history
            (topic, answer, sources, queries, num_sources, created_at)
            VALUES (?, ?, ?, ?, ?, ?)""",
         (
@@ -63,8 +62,8 @@ def get_history(limit: int = 20) -> list:
     """Get recent research history."""
     conn = get_connection()
     rows = conn.execute(
-        """SELECT id, topic, num_sources, created_at 
-           FROM research_history 
+        """SELECT id, topic, num_sources, created_at
+           FROM research_history
            ORDER BY id DESC LIMIT ?""",
         (limit,),
     ).fetchall()
