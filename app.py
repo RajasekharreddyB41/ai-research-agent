@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from config.settings import settings  # noqa: E402
-from database import save_research, get_history, get_research_by_id, delete_research  # noqa: E402
+from database import save_research, get_history, delete_research  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
