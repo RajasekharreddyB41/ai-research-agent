@@ -62,10 +62,11 @@ jobs:
       - name: Compute image tag
         id: image
         run: |
-          SHORT_SHA="${GITHUB_SHA::8}"
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-8)
           URI="${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${SHORT_SHA}"
           echo "uri=${URI}" >> $GITHUB_OUTPUT
-
+          echo "Image URI: ${URI}"
+          
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
