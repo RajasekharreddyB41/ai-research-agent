@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime
 
-DB_PATH = os.getenv("DB_PATH", "research_history.db")
+DB_PATH = os.getenv("DB_PATH", "/tmp/research_history.db")
 
 
 def get_connection():
