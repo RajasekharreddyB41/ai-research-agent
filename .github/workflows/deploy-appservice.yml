@@ -62,9 +62,7 @@ jobs:
         id: image
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
-          ACR="${{ env.ACR_NAME }}"
-          APP="${{ env.APP_NAME }}"
-          URI="${ACR}.azurecr.io/${APP}:${SHORT_SHA}"
+          URI="airesearchrb2026.azurecr.io/ai-research-agent-rb2026:${SHORT_SHA}"
           echo "uri=${URI}" >> $GITHUB_OUTPUT
           echo "Image URI is ${URI}"
 
