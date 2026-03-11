@@ -8,7 +8,7 @@ Graph topology:
 import logging
 from typing import Annotated, Any, TypedDict
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 from langgraph.graph import END, START, StateGraph
 
@@ -62,8 +62,7 @@ def _get_fast_llm(temperature: float = 0.2) -> ChatGroq:
 # Node: plan_queries
 # ---------------------------------------------------------------------------
 
-PLANNER_SYSTEM = """You are a research query planner. Given a research topic, generate 
-3-5 targeted search queries that together will gather comprehensive information.
+PLANNER_SYSTEM = """You are a research query planner. Given a research topic, generate
 
 Rules:
 - Output ONLY a numbered list of queries, one per line (e.g. "1. query here")
@@ -177,8 +176,7 @@ def scrape(state: AgentState) -> dict:
 # Node: synthesize
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM = """You are an expert research analyst. Your job is to synthesize 
-information from multiple web sources into a clear, accurate, and well-structured answer.
+SYNTHESIZER_SYSTEM = """You are an expert research analyst. Your job is to synthesize
 
 Guidelines:
 - Write in a clear, informative tone suitable for a knowledgeable reader
