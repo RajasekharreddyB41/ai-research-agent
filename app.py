@@ -15,7 +15,8 @@ ROOT = Path(__file__).parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from config.settings import settings
+from config.settings import settings  # noqa: E402
+from database import save_research, get_history, get_research_by_id, delete_research  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -307,6 +308,22 @@ with st.sidebar:
     st.markdown("### 🏗️ Pipeline")
     st.markdown("```\nQuery Planner\n     ↓\nWeb Search\n     ↓\nPage Scraper\n     ↓\nAI Synthesis\n```")
     st.caption("Built with LangGraph + Groq + Azure")
+    st.markdown("---")
+    st.markdown("### 📜 Research History")
+    history = get_history(limit=10)
+    if history:
+        for record in history:
+            col_h, col_d = st.sidebar.columns([4, 1])
+            with col_h:
+                if st.button(f"🔍 {record['topic'][:28]}...", key=f"h_{record['id']}"):
+                    st.session_state.selected_history = record['id']
+            with col_d:
+                if st.button("🗑️", key=f"d_{record['id']}"):
+                    delete_research(record['id'])
+                    st.rerun()
+            st.sidebar.caption(f"{record['created_at']} · {record['num_sources']} sources")
+    else:
+        st.sidebar.caption("No research history yet.")
 
 
 # ── Config check ──────────────────────────────────────────────────────────────
@@ -400,6 +417,14 @@ if research_clicked and topic.strip():
         with st.spinner(""):
             state = run_research(topic.strip())
         elapsed = time.time() - start_time
+
+        # ── Save to history ──
+        save_research(
+            topic=topic.strip(),
+            answer=state.get("answer", ""),
+            sources=state.get("sources", []),
+            queries=state.get("queries", []),
+        )
 
         # ── Workflow done ──
         workflow_ph.markdown(render_workflow(5), unsafe_allow_html=True)
