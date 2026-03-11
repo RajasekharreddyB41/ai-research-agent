@@ -1,57 +1,64 @@
 """
-Web search utilities using DuckDuckGo Search API.
+Web search utilities using Tavily Search API.
 Returns structured search results with URL, title, and snippet.
 """
 
 import logging
-import time
+import os
 from typing import Optional
 
-from duckduckgo_search import DDGS
+import requests
 
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
+TAVILY_URL = "https://api.tavily.com/search"
+
 
 def search_web(query: str, max_results: Optional[int] = None) -> list[dict]:
     """
-    Search the web using DuckDuckGo with retry logic.
+    Search the web using Tavily API.
     """
     max_results = max_results or settings.MAX_SEARCH_RESULTS
     results = []
 
-    for attempt in range(3):
-        try:
-            with DDGS() as ddgs:
-                raw = list(ddgs.text(
-                    query,
-                    max_results=max_results,
-                    safesearch="off",
-                    timelimit="y",
-                ))
+    if not TAVILY_API_KEY:
+        logger.error("TAVILY_API_KEY is not set")
+        return []
 
-            for item in raw:
-                url = item.get("href", "")
-                if url:
-                    results.append({
-                        "title": item.get("title", ""),
-                        "url": url,
-                        "snippet": item.get("body", ""),
-                    })
+    try:
+        response = requests.post(
+            TAVILY_URL,
+            json={
+                "api_key": TAVILY_API_KEY,
+                "query": query,
+                "max_results": max_results,
+                "search_depth": "basic",
+                "include_answer": False,
+                "include_raw_content": False,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
 
-            if results:
-                logger.info("Search '%s' returned %d results", query, len(results))
-                return results
+        for item in data.get("results", []):
+            url = item.get("url", "")
+            if url:
+                results.append({
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "snippet": item.get("content", ""),
+                })
 
-            logger.warning("Attempt %d: no results for '%s'", attempt + 1, query)
-            time.sleep(2)
+        logger.info("Tavily search '%s' returned %d results", query, len(results))
+        return results
 
-        except Exception as e:
-            logger.error("Attempt %d failed for '%s': %s", attempt + 1, query, e)
-            time.sleep(3)
-
-    return []
+    except Exception as e:
+        logger.error("Tavily search failed for '%s': %s", query, e)
+        return []
 
 
 def format_search_context(results: list[dict], scraped: list[dict]) -> str:
