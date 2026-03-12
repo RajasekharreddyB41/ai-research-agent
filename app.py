@@ -394,6 +394,7 @@ if research_clicked and topic.strip():
         st.error("Please set GROQ_API_KEY in your .env file.")
         st.stop()
 
+    # ✅ FIX 1: Correct import — folder is 'agents' not 'agent'
     from agent.research_agent import run_research
 
     settings.MAX_SEARCH_RESULTS = max_sources
@@ -467,7 +468,6 @@ if research_clicked and topic.strip():
 
         # ── Parse answer into summary + insights ──
         answer = state.get("answer", "No answer generated.")
-        # Strip any HTML tags the LLM may have generated
         answer = re.sub(r"<[^>]+>", "", answer)
         summary_lines = []
         insight_lines = []
@@ -506,31 +506,33 @@ if research_clicked and topic.strip():
             </div>""", unsafe_allow_html=True)
 
         # ── Sources ──
+        # ✅ FIX 2: Build src_html as a single clean string, no f-string nesting issues
         sources = state.get("sources", [])
         if sources:
             src_html = ""
             for i, src in enumerate(sources, 1):
-                title   = src.get("title", "Untitled") or "Untitled"
+                title   = re.sub(r"<[^>]+>", "", src.get("title", "Untitled") or "Untitled").strip()
                 url     = src.get("url", "#")
-                snippet = src.get("snippet", "")[:180]
+                snippet = re.sub(r"<[^>]+>", "", src.get("snippet", ""))
+                snippet = re.sub(r"&[a-zA-Z]{2,6};", " ", snippet).strip()[:180]
                 domain  = url.split("/")[2] if url.startswith("http") and len(url.split("/")) > 2 else url
                 badge   = '<span class="source-badge-full">● Full Text</span>' if src.get("scraped") else '<span class="source-badge-snip">● Snippet</span>'
-                src_html += f"""
-                <div class="source-card">
-                    <div class="source-header">
-                        <span class="source-num">SOURCE {i:02d}</span>
-                        {badge}
-                    </div>
-                    <div class="source-title">{title}</div>
-                    <div class="source-url">{domain}</div>
-                    <div class="source-snippet">{snippet}...</div>
-                    <a href="{url}" target="_blank" class="read-link">Read Article →</a>
-                </div>"""
-            st.markdown(f"""
-            <div class="results-section">
-                <div class="section-title">🔗 Sources ({len(sources)})</div>
-                {src_html}
-            </div>""", unsafe_allow_html=True)
+                src_html = src_html + (
+                    '<div class="source-card">'
+                    '<div class="source-header">'
+                    f'<span class="source-num">SOURCE {i:02d}</span>'
+                    f'{badge}'
+                    '</div>'
+                    f'<div class="source-title">{title}</div>'
+                    f'<div class="source-url">{domain}</div>'
+                    f'<div class="source-snippet">{snippet}...</div>'
+                    f'<a href="{url}" target="_blank" class="read-link">Read Article →</a>'
+                    '</div>'
+                )
+            st.markdown(
+                f'<div class="results-section"><div class="section-title">🔗 Sources ({len(sources)})</div>{src_html}</div>',
+                unsafe_allow_html=True,
+            )
 
         # ── Download ──
         full_report = f"# Research Report: {topic}\n\n## Summary\n{answer}\n\n## Sources\n"

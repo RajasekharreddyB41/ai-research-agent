@@ -2,13 +2,18 @@
 Research History Database using SQLite.
 Saves every research query and result for history viewing.
 """
-
 import sqlite3
 import json
 import os
 from datetime import datetime
+from pathlib import Path
 
-DB_PATH = os.getenv("DB_PATH", "/tmp/research_history.db")
+# ✅ FIX: Use a local 'data' folder that works on both Windows and Linux
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+DB_PATH = os.getenv("DB_PATH", str(DATA_DIR / "research_history.db"))
 
 
 def get_connection():
