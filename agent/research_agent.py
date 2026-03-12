@@ -45,7 +45,7 @@ def _get_llm(temperature: float = 0.2) -> ChatGroq:
         api_key=settings.GROQ_API_KEY,
         model="llama-3.3-70b-versatile",
         temperature=temperature,
-        max_tokens=2048,
+        max_tokens=1024,  # ✅ reduced from 2048
     )
 
 def _get_fast_llm(temperature: float = 0.2) -> ChatGroq:
@@ -176,17 +176,17 @@ def scrape(state: AgentState) -> dict:
 # Node: synthesize
 # ---------------------------------------------------------------------------
 
-SYNTHESIZER_SYSTEM = """You are an expert research analyst. Your job is to synthesize
+# ✅ Tightened prompt for faster, more focused output
+SYNTHESIZER_SYSTEM = """You are an expert research analyst. Synthesize the provided sources into a clear, concise report.
 
 Guidelines:
-- Write in a clear, informative tone suitable for a knowledgeable reader
-- Structure the answer with a brief introduction, key findings, and a conclusion
+- Write in a clear, informative tone
+- Structure: brief introduction, key findings, conclusion
 - Use **bold** for important terms or key points
-- Cite sources inline using [Source N] notation matching the context provided
-- If sources conflict, note the discrepancy
+- Cite sources inline using [Source N] notation
 - Do NOT fabricate information not present in the sources
-- Aim for 400-700 words unless the topic demands more detail
-- End with a "Key Takeaways" section with 3-5 bullet points
+- Aim for 250-400 words maximum
+- End with a "Key Takeaways" section with 3-5 bullet points starting with •
 """
 
 
@@ -209,7 +209,8 @@ def synthesize(state: AgentState) -> dict:
 Source Material:
 {context}
 
-Please provide a comprehensive, well-structured research summary based on the sources above."""
+Please provide a comprehensive, well-structured research summary based on the sources above.
+IMPORTANT: Only cite sources numbered [Source 1] through [Source {len(state['sources'])}]. Never hallucinate source numbers beyond what is provided."""
 
         response = llm.invoke([
             SystemMessage(content=SYNTHESIZER_SYSTEM),

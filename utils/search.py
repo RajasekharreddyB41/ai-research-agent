@@ -5,6 +5,7 @@ Returns structured search results with URL, title, and snippet.
 
 import logging
 import os
+import re
 from typing import Optional
 
 import requests
@@ -15,6 +16,15 @@ logger = logging.getLogger(__name__)
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 TAVILY_URL = "https://api.tavily.com/search"
+
+
+def _strip_html(text: str) -> str:
+    """Remove HTML tags and decode common entities."""
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"&[a-zA-Z]{2,6};", " ", text)
+    text = re.sub(r"&#?\w+;", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
 def search_web(query: str, max_results: Optional[int] = None) -> list[dict]:
@@ -48,9 +58,9 @@ def search_web(query: str, max_results: Optional[int] = None) -> list[dict]:
             url = item.get("url", "")
             if url:
                 results.append({
-                    "title": item.get("title", ""),
+                    "title": _strip_html(item.get("title", "")),
                     "url": url,
-                    "snippet": item.get("content", ""),
+                    "snippet": _strip_html(item.get("content", "")),
                 })
 
         logger.info("Tavily search '%s' returned %d results", query, len(results))
@@ -76,7 +86,8 @@ def format_search_context(results: list[dict], scraped: list[dict]) -> str:
         scraped_data = scraped_map.get(url, {})
         full_content = scraped_data.get("content", "")
 
-        body = full_content if full_content else snippet
+        # ✅ Limit body to 1500 chars to reduce LLM input size → faster synthesis
+        body = _strip_html(full_content if full_content else snippet)[:1500]
         sections.append(
             f"[Source {i}]\nTitle: {title}\nURL: {url}\nContent:\n{body}"
         )
