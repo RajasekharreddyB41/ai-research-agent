@@ -662,7 +662,8 @@ def generate_pdf(topic: str, answer: str, sources: list, date_str: str) -> bytes
             pdf.set_font("Helvetica", "", 11)
             pdf.set_text_color(51, 65, 85)
         elif re.match(r"^[-*\u2022]\s+", stripped):
-            mc(f"  - {re.sub(r'^[-*•]\\s+', '', stripped)}", 6)
+            bullet_text = re.sub(r'^[-*•]\s+', '', stripped)
+            mc(f'  - {bullet_text}', 6)
         else:
             mc(stripped, 6)
 
