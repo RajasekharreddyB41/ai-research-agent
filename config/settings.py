@@ -21,10 +21,10 @@ class Settings:
 
     # --- Agent ---
     MAX_ITERATIONS: int = int(os.getenv("MAX_ITERATIONS", "3"))
-    REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "6"))
+    REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "8"))
 
     # --- Parallel scraping ---
-    MAX_SCRAPE_WORKERS: int = int(os.getenv("MAX_SCRAPE_WORKERS", "5"))
+    MAX_SCRAPE_WORKERS: int = int(os.getenv("MAX_SCRAPE_WORKERS", "10"))
 
     def validate(self) -> list[str]:
         missing = []

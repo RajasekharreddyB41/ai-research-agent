@@ -56,7 +56,7 @@ def search_web(query: str, max_results: Optional[int] = None) -> list[dict]:
 
         for item in data.get("results", []):
             url = item.get("url", "")
-            if url:
+            if url and "youtube.com" not in url and "youtu.be" not in url:
                 results.append({
                     "title": _strip_html(item.get("title", "")),
                     "url": url,
@@ -86,8 +86,7 @@ def format_search_context(results: list[dict], scraped: list[dict]) -> str:
         scraped_data = scraped_map.get(url, {})
         full_content = scraped_data.get("content", "")
 
-        # ✅ Limit body to 1500 chars to reduce LLM input size → faster synthesis
-        body = _strip_html(full_content if full_content else snippet)[:1500]
+        body = _strip_html(full_content if full_content else snippet)[:settings.MAX_SCRAPE_CHARS]
         sections.append(
             f"[Source {i}]\nTitle: {title}\nURL: {url}\nContent:\n{body}"
         )
