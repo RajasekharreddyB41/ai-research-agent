@@ -110,7 +110,7 @@ Return ONLY the 5 queries, one per line, no numbering or bullets."""
         logger.error("plan_queries failed: %s", e)
         return {
             "queries": [topic],
-            "status_log": [f"📋 Generated 1 search query (fallback)"],
+            "status_log": ["📋 Generated 1 search query (fallback)"],
         }
 
 

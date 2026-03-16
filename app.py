@@ -1,10 +1,6 @@
 """
 AI Research Agent — Recruiter-Level Professional UI
 Clean white + dark blue design with agent workflow visualization.
-Merged best of both app.py versions:
-  • Streaming synthesis + follow-up questions + PDF export  (v1)
-  • sanitize_llm_output / bold_to_html / key-insights parsing (v2)
-  • Sidebar API-key inputs + history record loading           (v1)
 """
 
 import logging
@@ -27,9 +23,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Page config
-# ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="AI Research Agent",
     page_icon="🔬",
@@ -37,9 +30,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CSS (shared across both versions — identical)
-# ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -52,7 +42,6 @@ html, body, [class*="css"] {
 .stApp { background: #f8fafc !important; }
 .block-container { padding: 0 2rem 3rem !important; max-width: 900px !important; }
 
-/* ── Hero ── */
 .hero {
     background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
     border-radius: 16px;
@@ -77,7 +66,6 @@ html, body, [class*="css"] {
 .hero h1 span { color: #3b82f6; }
 .hero p { color: #94a3b8; font-size: 1rem; margin: 0.8rem auto 0; max-width: 500px; line-height: 1.6; }
 
-/* ── Search box ── */
 .search-container {
     background: white;
     border-radius: 12px;
@@ -110,7 +98,6 @@ html, body, [class*="css"] {
 }
 .stTextArea textarea::placeholder { color: #94a3b8 !important; }
 
-/* ── Buttons ── */
 .stButton > button {
     background: #1e40af !important;
     color: white !important;
@@ -127,7 +114,6 @@ html, body, [class*="css"] {
     box-shadow: 0 4px 15px rgba(29,78,216,0.3) !important;
 }
 
-/* ── Workflow steps ── */
 .workflow-container {
     background: white;
     border-radius: 12px;
@@ -167,7 +153,6 @@ html, body, [class*="css"] {
 .step-done    { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .workflow-arrow { color: #cbd5e1; font-size: 1.2rem; flex-shrink: 0; }
 
-/* ── Agent log ── */
 .agent-log {
     background: #0f172a;
     border-radius: 10px;
@@ -177,12 +162,11 @@ html, body, [class*="css"] {
     font-size: 0.78rem;
     line-height: 1.8;
 }
-.log-line       { color: #64748b; }
+.log-line        { color: #64748b; }
 .log-line.active { color: #38bdf8; }
-.log-line.done  { color: #4ade80; }
-.log-line.error { color: #f87171; }
+.log-line.done   { color: #4ade80; }
+.log-line.error  { color: #f87171; }
 
-/* ── Metrics ── */
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -199,7 +183,6 @@ html, body, [class*="css"] {
 .metric-number { font-size: 2rem; font-weight: 700; color: #1e40af; line-height: 1; display: block; }
 .metric-label  { font-size: 0.72rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block; }
 
-/* ── Results / sections ── */
 .results-section {
     background: white;
     border-radius: 12px;
@@ -218,7 +201,6 @@ html, body, [class*="css"] {
 .summary-text { color: #334155; font-size: 0.95rem; line-height: 1.8; }
 .summary-text strong { color: #1e40af; }
 
-/* ── Key Insights (from v2) ── */
 .insight-item {
     display: flex;
     align-items: flex-start;
@@ -238,7 +220,6 @@ html, body, [class*="css"] {
     flex-shrink: 0;
 }
 
-/* ── Markdown card wrapper for streamed content & follow-ups ── */
 div[data-testid="stVerticalBlock"]:has(> * > .md-card) {
     background: white;
     border-radius: 12px;
@@ -262,7 +243,6 @@ div[data-testid="stVerticalBlock"]:has(> * > .md-card) h4 {
 }
 div[data-testid="stVerticalBlock"]:has(> * > .md-card) strong { color: #1e40af; }
 
-/* ── Source cards ── */
 .source-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -293,7 +273,6 @@ div[data-testid="stVerticalBlock"]:has(> * > .md-card) strong { color: #1e40af; 
 .source-snippet { font-size: 0.82rem; color: #64748b; line-height: 1.5; }
 .read-link      { display: inline-block; margin-top: 0.5rem; font-size: 0.78rem; color: #3b82f6; font-weight: 500; }
 
-/* ── Tags / misc ── */
 .query-tag {
     display: inline-block;
     background: #eff6ff;
@@ -315,14 +294,12 @@ div[data-testid="stVerticalBlock"]:has(> * > .md-card) strong { color: #1e40af; 
     margin: 1rem 0;
 }
 
-/* ── Sidebar ── */
 section[data-testid="stSidebar"] { background: #0f172a !important; }
 section[data-testid="stSidebar"] * { color: #94a3b8 !important; }
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3 { color: #f1f5f9 !important; }
 
-/* ── Hide Streamlit chrome ── */
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 header { visibility: hidden; }
@@ -330,14 +307,11 @@ header { visibility: hidden; }
 """, unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Sidebar
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🔬 AI Research Agent")
     st.markdown("---")
 
-    # ── API Keys (from v1 — critical for live demo) ──
     st.markdown("### 🔑 API Keys")
     groq_key_input = st.text_input(
         "Groq API Key",
@@ -362,13 +336,8 @@ with st.sidebar:
 
     with st.expander("How to get API keys?"):
         st.markdown(
-            "**Groq**\n"
-            "1. Sign up at [console.groq.com](https://console.groq.com)\n"
-            "2. Go to **API Keys** in the sidebar\n"
-            "3. Click **Create Key** and copy it\n\n"
-            "**Tavily**\n"
-            "1. Sign up at [app.tavily.com](https://app.tavily.com)\n"
-            "2. Copy your API key from the dashboard"
+            "**Groq** — [console.groq.com](https://console.groq.com)\n\n"
+            "**Tavily** — [app.tavily.com](https://app.tavily.com)"
         )
 
     st.markdown("---")
@@ -381,6 +350,7 @@ with st.sidebar:
         "Renewable energy investments",
     ]:
         st.markdown(f"• {ex}")
+
     st.markdown("---")
     st.markdown("### ⚙️ Model")
     st.markdown("`llama-3.3-70b-versatile`")
@@ -394,13 +364,12 @@ with st.sidebar:
     st.caption("Built with LangGraph + Groq + Azure")
     st.markdown("---")
 
-    # ── Research History (from v1 — with active-record highlighting & delete) ──
     st.markdown("### 📜 Research History")
     history = get_history(limit=15)
     if history:
         active_id = st.session_state.get("active_record", {}).get("id")
         for record in history:
-            label = record["topic"] if len(record["topic"]) <= 30 else record["topic"][:28] + "…"
+            label = record["topic"][:28] + "…" if len(record["topic"]) > 30 else record["topic"]
             col_h, col_d = st.sidebar.columns([4, 1])
             with col_h:
                 is_active = record["id"] == active_id
@@ -420,15 +389,11 @@ with st.sidebar:
         st.sidebar.caption("No research history yet.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Config check (runs after sidebar may have overridden settings)
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Config check ──────────────────────────────────────────────────────────────
 missing = settings.validate()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Hero
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero">
     <div class="hero-badge">LangGraph · Groq LLM · Azure App Service</div>
@@ -446,9 +411,7 @@ if missing:
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Search input
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Search input ──────────────────────────────────────────────────────────────
 st.markdown(
     '<div class="search-container"><div class="search-label">Research Question</div>',
     unsafe_allow_html=True,
@@ -466,35 +429,24 @@ with col2:
 st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helper functions
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Helper functions ──────────────────────────────────────────────────────────
 
 def sanitize_llm_output(text: str) -> str:
-    """Clean LLM output for safe Streamlit rendering (from v2).
-
-    Streamlit st.markdown treats $...$ as LaTeX. The only reliable fix
-    is to strip all $ characters before rendering.
-    """
+    """Clean LLM output for safe Streamlit rendering."""
     text = text.replace("$", "")
-
-    # Unicode symbol normalisation
-    text = text.replace("\u2217", "*")   # ∗ → *
+    text = text.replace("\u2217", "*")
     text = text.replace("\u2022", "•")
-    text = text.replace("\u2013", "-")   # en-dash
-    text = text.replace("\u2014", "-")   # em-dash
-
-    # Broken bold markers from Llama models: "* *text* *" → "**text**"
+    text = text.replace("\u2013", "-")
+    text = text.replace("\u2014", "-")
     text = re.sub(r"\*\s\*([^*]+)\*\s\*", r"**\1**", text)
     text = re.sub(r"\*\s+\*", "**", text)
     text = re.sub(r"\*{3,}", "**", text)
-
     return text
 
 
 def bold_to_html(text: str) -> str:
     """Convert **bold** markdown to <strong> HTML."""
-    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    return re.sub(r"[*][*](.+?)[*][*]", r"<strong>\1</strong>", text)
 
 
 def render_workflow(step: int) -> str:
@@ -527,11 +479,7 @@ def render_workflow(step: int) -> str:
 
 
 def parse_insights(answer: str) -> tuple[list[str], list[str]]:
-    """Split answer text into (summary_lines, insight_lines).
-
-    Strips 'Key Findings/Takeaways/Insights' and 'Conclusion' sections
-    from summary_lines so they only appear in the Insights card.
-    """
+    """Split answer into (summary_lines, insight_lines)."""
     summary_lines: list[str] = []
     insight_lines: list[str] = []
     in_insights = False
@@ -541,29 +489,21 @@ def parse_insights(answer: str) -> tuple[list[str], list[str]]:
         line = line.strip()
         if not line:
             continue
-
-        # Detect Key Findings / Key Takeaways / Key Insights header
         if re.search(r"key (takeaway|insight|finding)", line, re.IGNORECASE):
             in_insights = True
             in_conclusion = False
             continue
-
-        # Detect Conclusion header — skip it from summary too
         if re.match(r"^#{0,4}\s*conclusion\s*$", line, re.IGNORECASE):
             in_conclusion = True
             in_insights = False
             continue
-
-        # Collect insight bullet points
         if in_insights and line.startswith(("•", "-", "*")):
             insight_lines.append(re.sub(r"^[•\-*]+\s*", "", line))
         elif in_insights and re.match(r"^\d+[.)]\s", line):
             insight_lines.append(re.sub(r"^\d+[.)]\s*", "", line))
         elif in_insights:
-            # Non-bullet line after insights header → treat as insight text
             insight_lines.append(line)
         elif in_conclusion:
-            # Skip conclusion lines from appearing in summary
             continue
         else:
             summary_lines.append(line)
@@ -571,24 +511,24 @@ def parse_insights(answer: str) -> tuple[list[str], list[str]]:
     return summary_lines, insight_lines
 
 
-def clean_markdown(text: str) -> str:
-    """Strip common markdown syntax for plain-text display in cards."""
-    text = re.sub(r"<[^>]+>", "", text)               # HTML tags
-    text = re.sub(r"&[a-zA-Z]{2,6};", " ", text)      # HTML entities
-    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)  # # headings
-    text = re.sub(r"\*{1,3}(.+?)\*{1,3}", r"\1", text)         # **bold** / *italic*
-    text = re.sub(r"^\s*[*\-•]\s+", "", text, flags=re.MULTILINE)  # bullet lines
-    text = re.sub(r"`(.+?)`", r"\1", text)             # `inline code`
+def clean_text(text: str) -> str:
+    """Strip HTML tags, entities and markdown for plain display."""
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"&[a-zA-Z]{2,6};", " ", text)
+    text = re.sub(r"^#{1,6}\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"[*]{1,3}(.+?)[*]{1,3}", r"\1", text)
+    text = re.sub(r"^\s*[*\-•]\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"`(.+?)`", r"\1", text)
     return text.strip()
 
 
 def build_source_html(sources: list) -> str:
-    """Build the HTML for source cards."""
+    """Build HTML for source cards — all text cleaned of HTML/markdown."""
     src_html = ""
     for i, src in enumerate(sources, 1):
-        title = clean_markdown(src.get("title", "Untitled") or "Untitled")
+        title = clean_text(src.get("title", "Untitled") or "Untitled")
         url = src.get("url", "#")
-        snippet = clean_markdown(src.get("snippet", ""))[:180]
+        snippet = clean_text(src.get("snippet", ""))[:180]
         domain = url.split("/")[2] if url.startswith("http") and len(url.split("/")) > 2 else url
         badge = (
             '<span class="source-badge-full">● Full Text</span>'
@@ -610,7 +550,7 @@ def build_source_html(sources: list) -> str:
 
 
 def render_key_insights(insight_lines: list[str]) -> None:
-    """Render a Key Insights card if any insights were parsed (from v2)."""
+    """Render Key Insights card."""
     if not insight_lines:
         return
     items_html = ""
@@ -629,12 +569,10 @@ def render_key_insights(insight_lines: list[str]) -> None:
     )
 
 
-# ── PDF generation (from v1) ─────────────────────────────────────────────────
-
 def _pdf_text(text: str) -> str:
-    """Strip markdown, unescape \\$, remove non-Latin-1 chars."""
+    """Prepare text for PDF rendering."""
     text = text.replace("\\$", "$")
-    text = re.sub(r"\*{1,3}(.+?)\*{1,3}", r"\1", text)
+    text = re.sub(r"[*]{1,3}(.+?)[*]{1,3}", r"\1", text)
     text = re.sub(r"`(.+?)`", r"\1", text)
     text = re.sub(r"[^\x00-\xFF]", "", text)
     text = re.sub(r"[\x80-\x9f]", " ", text)
@@ -642,6 +580,7 @@ def _pdf_text(text: str) -> str:
 
 
 def generate_pdf(topic: str, answer: str, sources: list, date_str: str) -> bytes:
+    """Generate a PDF research report."""
     from fpdf import FPDF
 
     pdf = FPDF(orientation="P", unit="mm", format="A4")
@@ -661,27 +600,31 @@ def generate_pdf(topic: str, answer: str, sources: list, date_str: str) -> bytes
     pdf.set_font("Helvetica", "B", 16)
     pdf.set_text_color(15, 23, 42)
     mc(topic, 9)
-    pdf.set_x(LEFT); pdf.ln(1)
+    pdf.set_x(LEFT)
+    pdf.ln(1)
 
     # Date
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(100, 116, 139)
     pdf.set_x(LEFT)
     pdf.cell(W, 6, _pdf_text(f"Research Date: {date_str}"), new_x="LMARGIN", new_y="NEXT")
-    pdf.set_x(LEFT); pdf.ln(3)
+    pdf.set_x(LEFT)
+    pdf.ln(3)
 
     # Divider
     pdf.set_draw_color(226, 232, 240)
     pdf.set_x(LEFT)
     pdf.line(LEFT, pdf.get_y(), RIGHT, pdf.get_y())
-    pdf.set_x(LEFT); pdf.ln(6)
+    pdf.set_x(LEFT)
+    pdf.ln(6)
 
     # Section heading
     pdf.set_font("Helvetica", "B", 12)
     pdf.set_text_color(15, 23, 42)
     pdf.set_x(LEFT)
     pdf.cell(W, 7, "Research Summary", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_x(LEFT); pdf.ln(2)
+    pdf.set_x(LEFT)
+    pdf.ln(2)
 
     # Body
     pdf.set_font("Helvetica", "", 11)
@@ -690,53 +633,69 @@ def generate_pdf(topic: str, answer: str, sources: list, date_str: str) -> bytes
     for line in answer.split("\n"):
         stripped = line.strip()
         if not stripped:
-            pdf.set_x(LEFT); pdf.ln(3); continue
+            pdf.set_x(LEFT)
+            pdf.ln(3)
+            continue
 
         if stripped.startswith("####"):
-            pdf.set_font("Helvetica", "B", 11); pdf.set_text_color(15, 23, 42)
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.set_text_color(15, 23, 42)
             mc(re.sub(r"^#{4}\s*", "", stripped), 6)
-            pdf.set_font("Helvetica", "", 11); pdf.set_text_color(51, 65, 85)
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(51, 65, 85)
         elif stripped.startswith("###"):
-            pdf.set_font("Helvetica", "B", 12); pdf.set_text_color(15, 23, 42)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_text_color(15, 23, 42)
             mc(re.sub(r"^#{3}\s*", "", stripped), 7)
-            pdf.set_font("Helvetica", "", 11); pdf.set_text_color(51, 65, 85)
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(51, 65, 85)
         elif stripped.startswith("##"):
-            pdf.set_font("Helvetica", "B", 13); pdf.set_text_color(15, 23, 42)
+            pdf.set_font("Helvetica", "B", 13)
+            pdf.set_text_color(15, 23, 42)
             mc(re.sub(r"^#{2}\s*", "", stripped), 7)
-            pdf.set_font("Helvetica", "", 11); pdf.set_text_color(51, 65, 85)
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(51, 65, 85)
         elif stripped.startswith("#"):
-            pdf.set_font("Helvetica", "B", 14); pdf.set_text_color(15, 23, 42)
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(15, 23, 42)
             mc(re.sub(r"^#\s*", "", stripped), 8)
-            pdf.set_font("Helvetica", "", 11); pdf.set_text_color(51, 65, 85)
+            pdf.set_font("Helvetica", "", 11)
+            pdf.set_text_color(51, 65, 85)
         elif re.match(r"^[-*\u2022]\s+", stripped):
             mc(f"  - {re.sub(r'^[-*•]\\s+', '', stripped)}", 6)
-        elif re.match(r"^\d+\.\s+", stripped):
-            mc(stripped, 6)
         else:
             mc(stripped, 6)
 
-        pdf.set_x(LEFT); pdf.ln(1)
+        pdf.set_x(LEFT)
+        pdf.ln(1)
 
     # Sources
     if sources:
-        pdf.set_x(LEFT); pdf.ln(3)
+        pdf.set_x(LEFT)
+        pdf.ln(3)
         pdf.set_draw_color(226, 232, 240)
         pdf.line(LEFT, pdf.get_y(), RIGHT, pdf.get_y())
-        pdf.set_x(LEFT); pdf.ln(6)
+        pdf.set_x(LEFT)
+        pdf.ln(6)
 
-        pdf.set_font("Helvetica", "B", 12); pdf.set_text_color(15, 23, 42)
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(15, 23, 42)
         pdf.set_x(LEFT)
         pdf.cell(W, 7, f"Sources ({len(sources)})", new_x="LMARGIN", new_y="NEXT")
-        pdf.set_x(LEFT); pdf.ln(2)
+        pdf.set_x(LEFT)
+        pdf.ln(2)
 
         for i, src in enumerate(sources, 1):
             title = src.get("title", "Untitled") or "Untitled"
             url = src.get("url", "") or ""
-            pdf.set_font("Helvetica", "B", 10); pdf.set_text_color(30, 64, 175)
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.set_text_color(30, 64, 175)
             mc(f"{i}. {title}", 6)
-            pdf.set_font("Helvetica", "", 9); pdf.set_text_color(100, 116, 139)
+            pdf.set_font("Helvetica", "", 9)
+            pdf.set_text_color(100, 116, 139)
             mc(url[:120], 5)
-            pdf.set_x(LEFT); pdf.ln(3)
+            pdf.set_x(LEFT)
+            pdf.ln(3)
 
     return bytes(pdf.output())
 
@@ -752,29 +711,42 @@ def render_downloads(topic_text: str, answer_raw: str, sources: list, date_str: 
 
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        st.download_button("⬇️ Download Markdown", data=full_report,
-                           file_name=f"research_{ts}.md", mime="text/markdown",
-                           use_container_width=True)
+        st.download_button(
+            "⬇️ Download Markdown", data=full_report,
+            file_name=f"research_{ts}.md", mime="text/markdown",
+            use_container_width=True,
+        )
     with col_b:
-        st.download_button("⬇️ Download Text", data=full_report,
-                           file_name=f"research_{ts}.txt", mime="text/plain",
-                           use_container_width=True)
+        st.download_button(
+            "⬇️ Download Text", data=full_report,
+            file_name=f"research_{ts}.txt", mime="text/plain",
+            use_container_width=True,
+        )
     with col_c:
-        st.download_button("⬇️ Download PDF", data=pdf_bytes,
-                           file_name=f"research_{ts}.pdf", mime="application/pdf",
-                           use_container_width=True)
+        st.download_button(
+            "⬇️ Download PDF", data=pdf_bytes,
+            file_name=f"research_{ts}.pdf", mime="application/pdf",
+            use_container_width=True,
+        )
 
 
-def render_metrics(n_queries: int, n_sources: int, n_scraped: int,
-                   elapsed: float | None = None) -> None:
+def render_metrics(
+    n_queries: int,
+    n_sources: int,
+    n_scraped: int,
+    elapsed: float | None = None,
+) -> None:
     """Render the 4-column metrics grid."""
-    time_cell = (
-        f'<span class="metric-number">{elapsed:.1f}s</span>'
-        f'<span class="metric-label">Time Taken</span>'
-        if elapsed is not None
-        else '<span class="metric-number">—</span>'
-             '<span class="metric-label">Cached Result</span>'
-    )
+    if elapsed is not None:
+        time_cell = (
+            f'<span class="metric-number">{elapsed:.1f}s</span>'
+            f'<span class="metric-label">Time Taken</span>'
+        )
+    else:
+        time_cell = (
+            '<span class="metric-number">—</span>'
+            '<span class="metric-label">Cached Result</span>'
+        )
     st.markdown(f"""
     <div class="metrics-grid">
         <div class="metric-card">
@@ -814,9 +786,7 @@ def render_query_tags(queries: list) -> None:
     st.markdown(f'<div style="margin:0.5rem 0 1.5rem">{tags}</div>', unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Hydrate history record (sidebar click)
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Hydrate history record ────────────────────────────────────────────────────
 _load_id = st.session_state.pop("load_history_id", None)
 if _load_id:
     _rec = get_research_by_id(_load_id)
@@ -828,19 +798,17 @@ if _load_id:
         st.session_state["followup_history"] = []
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Research execution (streaming — from v1)
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Research execution ────────────────────────────────────────────────────────
 research_triggered = st.session_state.pop("research_triggered", False)
 
 if research_triggered and topic.strip():
     st.session_state.pop("active_record", None)
 
     if missing:
-        st.error(f"Missing API keys: {', '.join(missing)}. Enter them in the sidebar or set in your .env file.")
+        st.error(f"Missing API keys: {', '.join(missing)}. Enter them in the sidebar.")
         st.stop()
 
-    from agent.research_agent import run_research_prep, stream_synthesis
+    from agent.research_agent import run_research  # noqa: E402
 
     settings.MAX_SEARCH_RESULTS = max_sources
     settings.MAX_SCRAPE_CHARS = max_chars
@@ -860,64 +828,51 @@ if research_triggered and topic.strip():
     start_time = time.time()
 
     try:
-        # Phase 1: plan + search + scrape (blocking)
         with st.spinner(""):
-            state = run_research_prep(topic.strip())
-
-        # Update UI: steps 1-3 done, step 4 active
-        workflow_ph.markdown(render_workflow(4), unsafe_allow_html=True)
-        log_html = '<div class="agent-log">'
-        for msg in state.get("status_log", []):
-            cls = "error" if "❌" in msg else "done"
-            log_html += f'<div class="log-line {cls}">{msg}</div>'
-        log_html += '<div class="log-line active">▶ Step 4: Streaming AI synthesis...</div>'
-        log_ph.markdown(log_html + "</div>", unsafe_allow_html=True)
-
-        n_queries = len(state.get("queries", []))
-        n_sources = len(state.get("sources", []))
-        n_scraped = sum(1 for s in state.get("sources", []) if s.get("scraped"))
-
-        render_query_tags(state.get("queries", []))
-
-        # Phase 2: stream synthesis
-        st.markdown(
-            '<div class="md-card"><div class="section-title">📋 Research Summary</div></div>',
-            unsafe_allow_html=True,
-        )
-        answer_raw = st.write_stream(stream_synthesis(state))
-        answer_raw = re.sub(r"<[^>]+>", "", answer_raw)
+            state = run_research(topic.strip())
 
         elapsed = time.time() - start_time
 
-        # Workflow complete
         workflow_ph.markdown(render_workflow(5), unsafe_allow_html=True)
+
         log_html = '<div class="agent-log">'
         for msg in state.get("status_log", []):
             cls = "error" if "❌" in msg else "done"
             log_html += f'<div class="log-line {cls}">{msg}</div>'
-        log_html += '<div class="log-line done">✅ Research synthesis complete</div>'
+        log_html += '<div class="log-line done">✅ Research complete</div>'
         log_ph.markdown(log_html + "</div>", unsafe_allow_html=True)
 
-        # Save to DB
+        answer_raw = re.sub(r"<[^>]+>", "", state.get("answer", "No answer generated."))
+        sources = state.get("sources", [])
+        queries = state.get("queries", [])
+
+        n_queries = len(queries)
+        n_sources = len(sources)
+        n_scraped = sum(1 for s in sources if s.get("scraped"))
+
         save_research(
             topic=topic.strip(),
             answer=answer_raw,
-            sources=state.get("sources", []),
-            queries=state.get("queries", []),
+            sources=sources,
+            queries=queries,
         )
 
-        # Persist for follow-ups
         st.session_state["last_answer"] = answer_raw
         st.session_state["last_topic"] = topic.strip()
-        st.session_state["last_sources"] = state.get("sources", [])
+        st.session_state["last_sources"] = sources
         st.session_state["followup_history"] = []
 
-        # Key Insights (parsed from v2 logic)
+        render_query_tags(queries)
+
+        with st.container():
+            st.markdown(
+                '<div class="md-card"><div class="section-title">📋 Research Summary</div></div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(sanitize_llm_output(answer_raw))
+
         _, insight_lines = parse_insights(answer_raw)
         render_key_insights(insight_lines)
-
-        # Metrics · Sources · Downloads
-        sources = state.get("sources", [])
         render_metrics(n_queries, n_sources, n_scraped, elapsed)
         render_sources_section(sources)
         render_downloads(topic.strip(), answer_raw, sources, time.strftime("%B %d, %Y"))
@@ -931,9 +886,6 @@ if research_triggered and topic.strip():
 elif research_triggered and not topic.strip():
     st.warning("Please enter a research question.")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Display a loaded history record
-# ─────────────────────────────────────────────────────────────────────────────
 elif st.session_state.get("active_record"):
     record = st.session_state["active_record"]
     answer_raw = record["answer"]
@@ -953,7 +905,6 @@ elif st.session_state.get("active_record"):
     render_metrics(len(queries), len(sources), n_scraped)
     render_query_tags(queries)
 
-    # Summary (filtered — Key Findings/Conclusion shown separately in Insights card)
     summary_lines, insight_lines = parse_insights(answer_raw)
     filtered_summary = "\n\n".join(summary_lines)
     with st.container():
@@ -963,10 +914,7 @@ elif st.session_state.get("active_record"):
         )
         st.markdown(sanitize_llm_output(filtered_summary))
 
-    # Key Insights
     render_key_insights(insight_lines)
-
-    # Sources & Downloads
     render_sources_section(sources)
     render_downloads(record["topic"], answer_raw, sources, date_str)
 
@@ -974,12 +922,10 @@ else:
     st.markdown(render_workflow(0), unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Follow-up question (from v1)
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Follow-up questions ───────────────────────────────────────────────────────
 if st.session_state.get("last_answer"):
-    from langchain_groq import ChatGroq
-    from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+    from langchain_groq import ChatGroq  # noqa: E402
+    from langchain_core.messages import AIMessage, HumanMessage, SystemMessage  # noqa: E402
 
     st.markdown(
         '<div class="results-section">'
@@ -988,20 +934,18 @@ if st.session_state.get("last_answer"):
         unsafe_allow_html=True,
     )
 
-    # Show conversation history
     for turn in st.session_state.get("followup_history", []):
         st.markdown(f"**You:** {turn['question']}")
         with st.container():
             st.markdown(
-                '<div class="md-card"><div class="section-title">🤖 Follow-up Answer</div></div>',
+                '<div class="md-card"><div class="section-title">🤖 Answer</div></div>',
                 unsafe_allow_html=True,
             )
             st.markdown(sanitize_llm_output(turn["answer"]))
 
-    # Input
     followup_q = st.text_input(
         "Follow-up question",
-        placeholder="What else would you like to know about this topic?",
+        placeholder="What else would you like to know?",
         label_visibility="collapsed",
         key="followup_input",
     )
@@ -1011,7 +955,6 @@ if st.session_state.get("last_answer"):
     followup_triggered = st.session_state.pop("followup_triggered", False)
 
     if followup_triggered and followup_q.strip():
-        # Build source context
         sources_ctx = ""
         for i, src in enumerate(st.session_state.get("last_sources", []), 1):
             title = src.get("title", "Untitled") or "Untitled"
@@ -1019,22 +962,20 @@ if st.session_state.get("last_answer"):
             sources_ctx += f"  [Source {i}] {title} — {url}\n"
 
         system_prompt = (
-            "You are a research assistant with access to a completed research report. "
-            "Answer follow-up questions using ONLY the facts in the research summary and sources provided. "
-            "If the answer cannot be found in the context, say so honestly. "
-            "Be concise and direct. Use **bold** for key terms and figures. "
-            "Do not repeat information the user already knows from the summary."
+            "You are a research assistant. Answer follow-up questions using ONLY "
+            "the facts in the research summary and sources. Be concise. "
+            "Use **bold** for key terms."
         )
 
         messages = [SystemMessage(content=system_prompt)]
         context_msg = (
-            f"I just completed research on: '{st.session_state['last_topic']}'\n\n"
-            f"Research summary:\n{st.session_state['last_answer']}\n\n"
-            f"Sources used:\n{sources_ctx}"
+            f"Research topic: '{st.session_state['last_topic']}'\n\n"
+            f"Summary:\n{st.session_state['last_answer']}\n\n"
+            f"Sources:\n{sources_ctx}"
         )
         messages.append(HumanMessage(content=context_msg))
         messages.append(
-            AIMessage(content="Understood. I have reviewed the research summary and sources. What would you like to know?")
+            AIMessage(content="Understood. What would you like to know?")
         )
 
         for turn in st.session_state.get("followup_history", []):
@@ -1054,7 +995,7 @@ if st.session_state.get("last_answer"):
             st.markdown(f"**You:** {followup_q.strip()}")
             with st.container():
                 st.markdown(
-                    '<div class="md-card"><div class="section-title">🤖 Follow-up Answer</div></div>',
+                    '<div class="md-card"><div class="section-title">🤖 Answer</div></div>',
                     unsafe_allow_html=True,
                 )
                 followup_raw = st.write_stream(
