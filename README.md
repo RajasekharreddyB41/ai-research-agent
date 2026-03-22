@@ -7,11 +7,13 @@ sdk: docker
 app_file: app.py
 pinned: false
 ---
+
 # 🔬 AI Research Agent
 
-> Autonomous web research powered by LangGraph + Groq LLM + Azure App Service
+> Autonomous web research powered by LangGraph + Groq LLM + Hugging Face Spaces
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Azure-0078D4?style=for-the-badge&logo=microsoft-azure)](https://ai-research-agent-rb2026.azurewebsites.net)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/Rajasekhar-06/ai-research-agent)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/RajasekharreddyB41/ai-research-agent)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.41-FF4B4B?style=for-the-badge&logo=streamlit)](https://streamlit.io)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2-1C3C3C?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
@@ -20,7 +22,7 @@ pinned: false
 
 ## 🚀 Live Demo
 
-**[https://ai-research-agent-rb2026.azurewebsites.net](https://ai-research-agent-rb2026.azurewebsites.net)**
+**[https://huggingface.co/spaces/Rajasekhar-06/ai-research-agent](https://huggingface.co/spaces/Rajasekhar-06/ai-research-agent)**
 
 Enter your Groq and Tavily API keys in the sidebar to try it live.
 
@@ -31,7 +33,7 @@ Enter your Groq and Tavily API keys in the sidebar to try it live.
 Unlike traditional AI models that rely on static training data, this system:
 
 - 🌐 Searches the **live internet in real-time**
-- 📄 Scrapes multiple trusted sources simultaneously  
+- 📄 Scrapes multiple trusted sources simultaneously
 - 🧠 Synthesizes results into a **clear, accurate report with citations**
 - ❌ Reduces hallucinations by grounding responses in real data
 
@@ -49,22 +51,22 @@ User Query
     │
     ▼
 ┌─────────────────┐
-│  Query Planner  │  llama-3.1-8b-instant  →  Generates 3–5 targeted sub-queries
+│  Query Planner  │  llama-3.1-8b-instant    →  Generates 3–5 targeted sub-queries
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│   Web Search    │  Tavily Search API     →  Fetches top results per query
+│   Web Search    │  Tavily Search API        →  Fetches top results per query
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  Page Scraper   │  BeautifulSoup         →  Parallel scraping of up to 8 pages
+│  Page Scraper   │  BeautifulSoup            →  Parallel scraping of up to 8 pages
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  AI Synthesis   │  llama-3.3-70b-versatile → Structured report with citations
+│  AI Synthesis   │  llama-3.3-70b-versatile  →  Structured report with citations
 └─────────────────┘
          │
          ▼
@@ -82,7 +84,7 @@ User Query
 | 💬 **Follow-up Questions** | Ask follow-up questions on any research result |
 | 📜 **Research History** | Every research saved to SQLite — reload any past result |
 | ⬇️ **Export Reports** | Download as Markdown, Text, or PDF |
-| 🔄 **CI/CD Pipeline** | Auto-deploys to Azure on every GitHub push |
+| 🔄 **CI/CD Pipeline** | Auto-deploys on every GitHub push via GitHub Actions |
 | 🎨 **Recruiter-Ready UI** | Professional dark blue hero, workflow visualization, source cards |
 
 ---
@@ -97,7 +99,7 @@ User Query
 | **Scraping** | BeautifulSoup4 + concurrent.futures |
 | **UI** | Streamlit 1.41 |
 | **Storage** | SQLite (research history) |
-| **Infra** | Docker → Azure Container Registry → Azure App Service |
+| **Infra** | Docker → Hugging Face Spaces |
 | **CI/CD** | GitHub Actions |
 
 ---
@@ -110,7 +112,6 @@ ai-research-agent/
 ├── database.py                   # SQLite research history
 ├── requirements.txt
 ├── Dockerfile
-├── startup.sh                    # Azure App Service entrypoint
 ├── agent/
 │   ├── __init__.py
 │   └── research_agent.py         # LangGraph 4-node pipeline
@@ -128,6 +129,81 @@ ai-research-agent/
 
 ---
 
+## ⚙️ Local Setup
+
+### Prerequisites
+- Python 3.11+
+- Docker Desktop
+- A [Groq API key](https://console.groq.com)
+- A [Tavily API key](https://app.tavily.com)
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/RajasekharreddyB41/ai-research-agent.git
+cd ai-research-agent
+```
+
+### 2. Create virtual environment
+```bash
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+```
+
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure environment
+```bash
+cp .env.example .env
+# Edit .env and add your API keys
+```
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+MAX_SEARCH_RESULTS=5
+MAX_SCRAPE_CHARS=3000
+```
+
+### 5. Run locally
+```bash
+streamlit run app.py
+```
+
+Open [http://localhost:8501](http://localhost:8501)
+
+---
+
+## 🐳 Docker
+
+```bash
+# Build
+docker build --platform linux/amd64 -t ai-research-agent .
+
+# Run
+docker run -p 7860:7860 \
+  -e GROQ_API_KEY=your_key \
+  -e TAVILY_API_KEY=your_key \
+  ai-research-agent
+```
+
+---
+
+## 🔑 Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GROQ_API_KEY` | required | Groq LLM API key |
+| `TAVILY_API_KEY` | required | Tavily Search API key |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | LLM model for synthesis |
+| `MAX_SEARCH_RESULTS` | `5` | Max sources per query |
+| `MAX_SCRAPE_CHARS` | `3000` | Max chars scraped per page |
+| `MAX_SCRAPE_WORKERS` | `5` | Parallel scraping threads |
+| `REQUEST_TIMEOUT` | `6` | HTTP timeout in seconds |
+| `DB_PATH` | `/tmp/research_history.db` | SQLite database path |
 
 ---
 
@@ -137,7 +213,7 @@ This project demonstrates:
 
 - ✅ Agentic AI system design (LangGraph)
 - ✅ Real-time data integration (Tavily)
-- ✅ Scalable architecture (Docker + Azure)
+- ✅ Scalable architecture (Docker + Hugging Face)
 - ✅ Production deployment with CI/CD
 - ✅ Full-stack AI engineering (UI → backend → infra)
 
@@ -145,16 +221,14 @@ This project demonstrates:
 
 ## 👨‍💻 Developed By
 
-**Rajasekhar Reddy Byreddy**  
-Passionate about building intelligent AI systems that make information accessible.
+**Rajasekhar Reddy Byreddy**
+Student @ New England College
+Building a production-grade AI Engineer portfolio.
 
-🔗 GitHub: https://github.com/RajasekharreddyB41
+🔗 GitHub: [RajasekharreddyB41](https://github.com/RajasekharreddyB41)
 
 ---
 
 ## 📄 License
 
 MIT License — feel free to use this project as a reference.
-
-
-
