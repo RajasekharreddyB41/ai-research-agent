@@ -1,4 +1,4 @@
-name: Deploy to Azure App Service
+name: CI
 
 on:
   push:
@@ -31,77 +31,3 @@ jobs:
           python -m py_compile utils/scraper.py
           python -m py_compile utils/search.py
           echo "All files OK"
-
-  build:
-    name: Build and Push
-    needs: lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Log in to ACR
-        run: az acr login --name airesearchrb2026
-
-      - name: Build and push image
-        run: |
-          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
-          IMAGE="airesearchrb2026.azurecr.io/ai-research-agent-rb2026:${SHORT_SHA}"
-          LATEST="airesearchrb2026.azurecr.io/ai-research-agent-rb2026:latest"
-          docker build --platform linux/amd64 -t "$IMAGE" -t "$LATEST" .
-          docker push "$IMAGE"
-          docker push "$LATEST"
-          echo "IMAGE_URI=${IMAGE}" >> $GITHUB_ENV
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Update App Service image
-        run: |
-          az webapp config container set \
-            --resource-group rg-research-agent \
-            --name ai-research-agent-rb2026 \
-            --docker-custom-image-name airesearchrb2026.azurecr.io/ai-research-agent-rb2026:latest \
-            --output none
-          az webapp restart \
-            --resource-group rg-research-agent \
-            --name ai-research-agent-rb2026 \
-            --output none
-          echo "App restarted successfully"
-
-      - name: Sync GROQ_API_KEY
-        run: |
-          az webapp config appsettings set \
-            --resource-group rg-research-agent \
-            --name ai-research-agent-rb2026 \
-            --settings GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
-            --output none
-          echo "Secrets synced"
-
-      - name: Verify app is live
-        run: |
-          for i in {1..12}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://ai-research-agent-rb2026.azurewebsites.net/_stcore/health" || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "App is healthy!"
-              echo "Live at: https://ai-research-agent-rb2026.azurewebsites.net"
-              exit 0
-            fi
-            echo "Attempt $i/12 - status $STATUS - retrying in 15s..."
-            sleep 15
-          done
-          echo "App did not respond in time"
-          exit 1
