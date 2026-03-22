@@ -1,3 +1,9 @@
+title: AI Research Agent
+emoji: 🔬
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
 # 🔬 AI Research Agent
 
 > Autonomous web research powered by LangGraph + Groq LLM + Azure App Service
