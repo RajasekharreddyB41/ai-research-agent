@@ -1,14 +1,11 @@
-# ── Stage 1: Builder ──────────────────────────────────────────────────────
+# ── Stage 1: Builder ──────────────────────────────────────────────────────────
 FROM python:3.11-slim AS builder
-
 WORKDIR /build
 COPY requirements.txt .
-
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-
-# ── Stage 2: Runtime ──────────────────────────────────────────────────────
+# ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 FROM python:3.11-slim AS runtime
 
 # Security: non-root user
@@ -30,10 +27,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 USER appuser
 
-EXPOSE 8501
+# Hugging Face Spaces requires port 7860
+# Azure App Service uses $PORT (default 8000)
+EXPOSE 7860
 
 CMD streamlit run app.py \
-        --server.port=${PORT:-8501} \
+        --server.port=${PORT:-7860} \
         --server.address=0.0.0.0 \
         --server.headless=true \
         --server.enableCORS=false \
