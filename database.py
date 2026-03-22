@@ -2,29 +2,23 @@
 Research History Database using SQLite.
 Saves every research query and result for history viewing.
 """
+
 import sqlite3
 import json
 import os
 from datetime import datetime
-from pathlib import Path
 
-# ✅ FIX: Use a local 'data' folder that works on both Windows and Linux
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
-
-DB_PATH = os.getenv("DB_PATH", str(DATA_DIR / "research_history.db"))
+# Use /tmp/ for both Azure and Hugging Face (writable directory)
+DB_PATH = os.getenv("DB_PATH", "/tmp/research_history.db")
 
 
 def get_connection():
-    """Get SQLite database connection."""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    """Create tables if they don't exist."""
     conn = get_connection()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS research_history (
@@ -42,7 +36,6 @@ def init_db():
 
 
 def save_research(topic: str, answer: str, sources: list, queries: list) -> int:
-    """Save a research result to the database."""
     conn = get_connection()
     cursor = conn.execute(
         """INSERT INTO research_history
@@ -64,7 +57,6 @@ def save_research(topic: str, answer: str, sources: list, queries: list) -> int:
 
 
 def get_history(limit: int = 20) -> list:
-    """Get recent research history."""
     conn = get_connection()
     rows = conn.execute(
         """SELECT id, topic, num_sources, created_at
@@ -77,7 +69,6 @@ def get_history(limit: int = 20) -> list:
 
 
 def get_research_by_id(record_id: int) -> dict:
-    """Get a specific research result by ID."""
     conn = get_connection()
     row = conn.execute(
         "SELECT * FROM research_history WHERE id = ?",
@@ -93,7 +84,6 @@ def get_research_by_id(record_id: int) -> dict:
 
 
 def delete_research(record_id: int):
-    """Delete a research record."""
     conn = get_connection()
     conn.execute("DELETE FROM research_history WHERE id = ?", (record_id,))
     conn.commit()
